@@ -27,13 +27,25 @@ client.connect((err) => {
   // perform actions on the collection object
   //add a user to db
   app.post("/add-user", (req, res) => {
-    userCollection
-      .insertOne({
-        name: "sagar",
-        email: "sagar@gmail.com",
-        role: "User",
-      })
-      .then((result) => res.send({ message: "user added to the db" }));
+    console.log(req.body);
+    const { name, email } = req.body;
+    userCollection.findOne({ email }).then((response) => {
+      console.log(response);
+      if (response) {
+        return res.send({ message: "there is already a user with this email" });
+      }
+      if (!response) {
+        userCollection
+          .insertOne({
+            name,
+            email,
+            role: "User",
+          })
+          .then((result) =>
+            res.send({ message: "user has been added to the db" })
+          );
+      }
+    });
   });
   //update user role
   app.patch("/update-role", (req, res) => {
@@ -50,22 +62,31 @@ client.connect((err) => {
         res.send("user role updated successfully");
       });
   });
+  //get all service list
+  app.get("/all-service", (req, res) => {
+    serviceCollection.find().toArray((err, doc) => {
+      res.send(doc);
+    });
+  });
   //adding a service to db
   app.post("/add-new-service", (req, res) => {
+    console.log(req.body);
+    const { title, categoryName, price, description, image } = req.body;
     serviceCollection
       .insertOne({
-        title: "canvas",
+        title,
         category: [
           {
-            categoryName: "name",
-            price: 23,
+            categoryName,
+            price,
           },
         ],
-        image: "jhgg.jpg",
-        description: "hah hah hah hah",
+        image,
+        description,
       })
       .then(function (result) {
-        console.log(result);
+        console.log(result.insertedCount);
+        res.send({ message: "service has been successfully inserted to db" });
       });
   });
   // add a new category to an existing service
@@ -103,17 +124,12 @@ client.connect((err) => {
         console.log("deleted this catagory successfully sagar")
       );
   });
-  // add an order to the db
+  // add an booking order to the db
   app.post("/book-service", (req, res) => {
+    console.log(req.body);
     serviceBookings
       .insertOne({
-        name: "sagar",
-        userId: "6079811009651f2b484ad140",
-        email: "sagar@gmail.com",
-        serviceTitle: "commercial service",
-        category: "Lock Repairs",
-        price: 23,
-        date: new Date(),
+        ...req.body,
         status: "pending",
       })
       .then((result) => res.send({ message: "a new booking added to the db" }));
@@ -153,6 +169,7 @@ client.connect((err) => {
 
   app.get("/getService/:id", (req, res) => {
     const id = req.params.id;
+    console.log(id);
     serviceCollection
       .findOne({
         _id: ObjectId(id),
@@ -164,13 +181,18 @@ client.connect((err) => {
   app.post("/post-review", (req, res) => {
     console.log(req.body);
     userReviews
-      .insertOne({
-        name: "sagar",
-        email: "sagar@gmail.com",
-        image: "",
-        reviewText: "this is a good service",
-      })
-      .then((result) => res.send({ message: "user added to the db" }));
+      .insertOne(req.body)
+      .then((result) =>
+        res.send({ message: "user review has been added to the db" })
+      );
+  });
+
+  //get all reviews
+
+  app.get("/get-all-reviews", (req, res) => {
+    userReviews.find().toArray((err, document) => {
+      return res.send(document);
+    });
   });
   console.log("connected to db");
 });
