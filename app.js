@@ -27,10 +27,8 @@ client.connect((err) => {
   // perform actions on the collection object
   //add a user to db (used)
   app.post("/add-user", (req, res) => {
-    console.log(req.body);
     const { name, email } = req.body;
     userCollection.findOne({ email }).then((response) => {
-      console.log(response);
       if (response) {
         return res.send({ message: "there is already a user with this email" });
       }
@@ -49,7 +47,6 @@ client.connect((err) => {
   });
   //update user role(used)
   app.patch("/update-role", (req, res) => {
-    console.log(req.body);
     const { email, role } = req.body;
     userCollection
       .updateOne(
@@ -70,6 +67,13 @@ client.connect((err) => {
       res.send(doc);
     });
   });
+  // see if a user is an admin or not based on email
+  app.get("/is-admin/:email", (req, res) => {
+    userCollection.findOne({ email: req.params.email }).then((result) => {
+      res.send({ isAdmin: result.role === "admin" });
+    });
+  });
+
   //get all service list (used)
   app.get("/all-service", (req, res) => {
     serviceCollection.find().toArray((err, doc) => {
@@ -78,7 +82,6 @@ client.connect((err) => {
   });
   //adding a service to db (used)
   app.post("/add-new-service", (req, res) => {
-    console.log(req.body);
     const { title, categoryName, price, description, image } = req.body;
     serviceCollection
       .insertOne({
@@ -93,17 +96,15 @@ client.connect((err) => {
         description,
       })
       .then(function (result) {
-        console.log(result.insertedCount);
         res.send({ message: "service has been successfully inserted to db" });
       });
   });
   // add a new category to an existing service (used)
   app.patch("/add-new-category/:serviceId", (req, res) => {
     const serviceId = req.params.serviceId;
-    console.log("ddddd----------", serviceId);
-    console.log(req.body);
+
     const category = req.body;
-    console.log("ss==============", category);
+
     serviceCollection
       .updateOne(
         { _id: ObjectId(serviceId) },
@@ -122,7 +123,7 @@ client.connect((err) => {
   app.patch("/delete-category/:serviceId", (req, res) => {
     const serviceId = req.params.serviceId;
     const category = req.body;
-    console.log(category);
+
     serviceCollection
       .updateOne(
         { _id: ObjectId(serviceId) },
@@ -141,7 +142,6 @@ client.connect((err) => {
   app.patch("/update-service/:serviceId", (req, res) => {
     const id = req.params.serviceId;
     const { title, category, image, description, _id } = req.body;
-    // console.log("divya--------------", id, updateInfo);
 
     serviceCollection
       .updateOne(
@@ -168,7 +168,6 @@ client.connect((err) => {
   });
   // add an booking order to the db(used)
   app.post("/book-service", (req, res) => {
-    console.log(req.body);
     serviceBookings
       .insertOne({
         ...req.body,
@@ -217,7 +216,7 @@ client.connect((err) => {
 
   app.get("/getService/:id", (req, res) => {
     const id = req.params.id;
-    console.log(id);
+
     serviceCollection
       .findOne({
         _id: ObjectId(id),
@@ -249,6 +248,6 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.listen(port, () => {
+app.listen(process.env.PORT || port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
 });
