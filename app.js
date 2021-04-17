@@ -25,7 +25,7 @@ client.connect((err) => {
     .collection("bookings");
   const userReviews = client.db(`${process.env.DB_NAME}`).collection("reviews");
   // perform actions on the collection object
-  //add a user to db
+  //add a user to db (used)
   app.post("/add-user", (req, res) => {
     console.log(req.body);
     const { name, email } = req.body;
@@ -47,14 +47,16 @@ client.connect((err) => {
       }
     });
   });
-  //update user role
+  //update user role(used)
   app.patch("/update-role", (req, res) => {
+    console.log(req.body);
+    const { email, role } = req.body;
     userCollection
       .updateOne(
-        { _id: ObjectId("6079811009651f2b484ad140") },
+        { email },
         {
           $set: {
-            role: "admin",
+            role,
           },
         }
       )
@@ -62,13 +64,19 @@ client.connect((err) => {
         res.send("user role updated successfully");
       });
   });
-  //get all service list
+  //get all admin list (used)
+  app.get("/all-admin-list", (req, res) => {
+    userCollection.find({ role: "admin" }).toArray((err, doc) => {
+      res.send(doc);
+    });
+  });
+  //get all service list (used)
   app.get("/all-service", (req, res) => {
     serviceCollection.find().toArray((err, doc) => {
       res.send(doc);
     });
   });
-  //adding a service to db
+  //adding a service to db (used)
   app.post("/add-new-service", (req, res) => {
     console.log(req.body);
     const { title, categoryName, price, description, image } = req.body;
@@ -89,17 +97,19 @@ client.connect((err) => {
         res.send({ message: "service has been successfully inserted to db" });
       });
   });
-  // add a new category to an existing service
-  app.patch("/update-one", (req, res) => {
+  // add a new category to an existing service (used)
+  app.patch("/add-new-category/:serviceId", (req, res) => {
+    const serviceId = req.params.serviceId;
+    console.log("ddddd----------", serviceId);
+    console.log(req.body);
+    const category = req.body;
+    console.log("ss==============", category);
     serviceCollection
       .updateOne(
-        { _id: ObjectId("607976addc7d4c244852d668") },
+        { _id: ObjectId(serviceId) },
         {
           $push: {
-            category: {
-              categoryName: "mobile",
-              price: 33,
-            },
+            category,
           },
         }
       )
@@ -109,13 +119,16 @@ client.connect((err) => {
   });
   //https://docs.mongodb.com/manual/reference/operator/update/positional/
   //delete a service category
-  app.patch("/delete-category", (req, res) => {
+  app.patch("/delete-category/:serviceId", (req, res) => {
+    const serviceId = req.params.serviceId;
+    const category = req.body;
+    console.log(category);
     serviceCollection
       .updateOne(
-        { _id: ObjectId("607976addc7d4c244852d668") },
+        { _id: ObjectId(serviceId) },
         {
           $pull: {
-            category: { categoryName: "mobile", price: 33 },
+            category,
           },
         },
         { multi: true }
@@ -124,7 +137,36 @@ client.connect((err) => {
         console.log("deleted this catagory successfully sagar")
       );
   });
-  // add an booking order to the db
+  //update a service
+  app.patch("/update-service/:serviceId", (req, res) => {
+    const id = req.params.serviceId;
+    const { title, category, image, description, _id } = req.body;
+    // console.log("divya--------------", id, updateInfo);
+
+    serviceCollection
+      .updateOne(
+        { _id: ObjectId(id) },
+        {
+          $set: { title, category, image, description },
+        }
+      )
+      .then((result) => res.send({ message: "updated successfully", result }));
+  });
+  //delete a service(used)
+  app.delete("/delete-service/:serviceId", (req, res) => {
+    serviceCollection
+      .deleteOne({
+        _id: ObjectId(req.params.serviceId),
+      })
+      .then(function (result) {
+        // process result
+        res.send({
+          message: "Deleted successfully",
+          deleted: result.deletedCount > 0,
+        });
+      });
+  });
+  // add an booking order to the db(used)
   app.post("/book-service", (req, res) => {
     console.log(req.body);
     serviceBookings
@@ -134,27 +176,33 @@ client.connect((err) => {
       })
       .then((result) => res.send({ message: "a new booking added to the db" }));
   });
-  // update service delivery status
-  app.patch("/update-order-status", (req, res) => {
+  // update service delivery status (used)
+  app.patch("/update-order-status/:postId", (req, res) => {
+    const id = req.params.postId;
+
+    const status = req.body.status;
     serviceBookings
       .updateOne(
-        { _id: ObjectId("60798414276e0c3678693dec") },
+        { _id: ObjectId(id) },
         {
           $set: {
-            status: "on going",
+            status,
           },
         }
       )
       .then((result) => {
-        res.send("delivery status updated successfully");
+        res.send({
+          message: "delivery status updated successfully",
+          modified: result.modifiedCount > 0,
+        });
       });
   });
 
-  // get all bookings
+  // get all bookings(used)
   app.get("/get-all-bookings", (req, res) => {
     serviceBookings.find().toArray((error, documents) => res.send(documents));
   });
-  //get all bookings of an user
+  //get all bookings of an user(used)
   app.get("/get-user-bookings/:email", (req, res) => {
     const email = req.params.email;
     serviceBookings
@@ -165,7 +213,7 @@ client.connect((err) => {
         res.send(document);
       });
   });
-  //get a service based on id
+  //get a service based on id (used)
 
   app.get("/getService/:id", (req, res) => {
     const id = req.params.id;
@@ -176,7 +224,7 @@ client.connect((err) => {
       })
       .then((result) => res.send(result));
   });
-  // post a user review
+  // post a user review (used)
 
   app.post("/post-review", (req, res) => {
     console.log(req.body);
@@ -187,7 +235,7 @@ client.connect((err) => {
       );
   });
 
-  //get all reviews
+  //get all reviews (used)
 
   app.get("/get-all-reviews", (req, res) => {
     userReviews.find().toArray((err, document) => {
