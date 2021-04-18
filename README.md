@@ -13,10 +13,11 @@ This is simple **MERN** fullstack project.
 >> Record purchase order  
 >> Delete a service based on id  
 >> Update a service based on id  
->> Delete and Update Service Category any service type 
->> Get order details of each user based on email
->> Making admin
->> Deleting admin role
+>> Delete and Update Service Category any service type  
+>> Get order details of each user based on email  
+>> Making admin  
+>> Deleting admin role  
+
 
 
 
