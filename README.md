@@ -1,6 +1,6 @@
 # Getting Started with Create React App
 
-Live Site url [click here](https://book-voice.netlify.app/).
+Live Site url [click here](https://locks-draft.netlify.app/).
 
 ## Project name - Locks-craft
 
@@ -20,4 +20,4 @@ This is simple **MERN** fullstack project.
 
 
 
-Clint Side code [click here](https://github.com/Porgramming-Hero-web-course/full-stack-client-Oshan12345).
+Clint Side code [click here](https://github.com/Porgramming-Hero-web-course/complete-website-client-Oshan12345).
