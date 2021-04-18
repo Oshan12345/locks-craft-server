@@ -24,7 +24,10 @@ client.connect((err) => {
     .db(`${process.env.DB_NAME}`)
     .collection("bookings");
   const userReviews = client.db(`${process.env.DB_NAME}`).collection("reviews");
-  // perform actions on the collection object
+  const adminCollection = client
+    .db(`${process.env.DB_NAME}`)
+    .collection("admins");
+
   //add a user to db (used)
   app.post("/add-user", (req, res) => {
     const { name, email } = req.body;
@@ -37,7 +40,7 @@ client.connect((err) => {
           .insertOne({
             name,
             email,
-            role: "User",
+            role: "user",
           })
           .then((result) =>
             res.send({ message: "user has been added to the db" })
@@ -46,30 +49,66 @@ client.connect((err) => {
     });
   });
   //update user role(used)
-  app.patch("/update-role", (req, res) => {
+  app.post("/make-admin", (req, res) => {
     const { email, role } = req.body;
-    userCollection
-      .updateOne(
-        { email },
-        {
-          $set: {
-            role,
-          },
-        }
-      )
-      .then((result) => {
-        res.send("user role updated successfully");
-      });
+    adminCollection.findOne({ email }).then((response) => {
+      if (response) {
+        return res.send({
+          message: "There is already an admin with this email",
+        });
+      }
+      if (!response) {
+        adminCollection.insertOne({ email, role }).then((result) => {
+          res.send({ message: "admin has been added to the db" });
+        });
+      }
+    });
   });
+  //delete admin
+  app.delete("/delete-admin-role/:adminId", (req, res) => {
+    const adminId = req.params.adminId;
+
+    adminCollection.deleteOne({ _id: ObjectId(adminId) }).then((result) => {
+      return res.send({ message: "user role updated successfully", result });
+    });
+  });
+  //this function can be user for updating role for logged in users...
+  // app.patch("/update-role", (req, res) => {
+  //   const { email, role } = req.body;
+  //   adminCollection
+  //     .updateOne(
+  //       { email },
+  //       {
+  //         $set: {
+  //           role,
+  //         },
+  //       }
+  //     )
+  //     .then((result) => {
+  //       res.send("user role updated successfully");
+  //     });
+  // userCollection
+  //   .updateOne(
+  //     { email },
+  //     {
+  //       $set: {
+  //         role,
+  //       },
+  //     }
+  //   )
+  //   .then((result) => {
+  //     res.send("user role updated successfully");
+  //   });
+  //});
   //get all admin list (used)
   app.get("/all-admin-list", (req, res) => {
-    userCollection.find({ role: "admin" }).toArray((err, doc) => {
+    adminCollection.find().toArray((err, doc) => {
       res.send(doc);
     });
   });
   // see if a user is an admin or not based on email
   app.get("/is-admin/:email", (req, res) => {
-    userCollection.findOne({ email: req.params.email }).then((result) => {
+    adminCollection.findOne({ email: req.params.email }).then((result) => {
       res.send({ isAdmin: result.role === "admin" });
     });
   });
@@ -115,10 +154,10 @@ client.connect((err) => {
         }
       )
       .then((result) => {
-        console.log(result);
+        res.send({ message: "a new category has been added." });
       });
   });
-  //https://docs.mongodb.com/manual/reference/operator/update/positional/
+
   //delete a service category
   app.patch("/delete-category/:serviceId", (req, res) => {
     const serviceId = req.params.serviceId;
@@ -134,9 +173,9 @@ client.connect((err) => {
         },
         { multi: true }
       )
-      .then((result) =>
-        console.log("deleted this catagory successfully sagar")
-      );
+      .then((result) => {
+        res.send({ message: "this category is deleted." });
+      });
   });
   //update a service
   app.patch("/update-service/:serviceId", (req, res) => {
@@ -226,7 +265,6 @@ client.connect((err) => {
   // post a user review (used)
 
   app.post("/post-review", (req, res) => {
-    console.log(req.body);
     userReviews
       .insertOne(req.body)
       .then((result) =>
@@ -248,6 +286,4 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.listen(process.env.PORT || port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
-});
+app.listen(process.env.PORT || port, () => {});
