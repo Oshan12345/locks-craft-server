@@ -21,4 +21,4 @@ This is simple **MERN** fullstack project.
 
 
 
-Clint Side code [click here](https://github.com/Oshan12345/locks-craft-client).
+Clint Side code [click here](https://github.com/sagar-biswas1/locks-craft-client).
