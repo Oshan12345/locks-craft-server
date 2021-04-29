@@ -21,4 +21,4 @@ This is simple **MERN** fullstack project.
 
 
 
-Clint Side code [click here](https://github.com/Porgramming-Hero-web-course/complete-website-client-Oshan12345).
+Clint Side code [click here](https://github.com/Oshan12345/locks-craft-client).
